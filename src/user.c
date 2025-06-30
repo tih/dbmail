@@ -62,7 +62,7 @@ int do_showhelp(void)
 	"     -c, --change-user user   change details for a user\n"
 	"     -e, --empty-user-mailboxes user   empty all mailboxes for a user\n"
 	"     -l, --list-user user     list information for matching users\n"
-	"     -l, --list-users         list information for all users\n"
+	"     -L, --list-users         list information for all users\n"
 	"     -x, --forward address    create an external forwarding address\n"
 	"                              use with --add-forward and --delete-forward\n"
 	"\nSummary of options for all modes:\n"
@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
 		{"delete-user", required_argument, NULL, 'd'},
 		{"empty-user-mailboxes", required_argument, NULL, 'e'},
 		{"list-user", required_argument, NULL, 'l'},
-		{"list-users", no_argument, NULL, 'l'},
+		{"list-users", no_argument, NULL, 'L'},
 		{"forward", required_argument, NULL, 'x'},
 
 		{"password", required_argument, NULL, 'w'},
@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
 	};
 	int option_index = 0;
 	while ((opt = getopt_long(argc, argv,
-				"a:d:c:e:l:x:" /* Major modes */
+				"a:d:c:e:l:Lx:" /* Major modes */
 				"W::w:P::p:u:g:m:t:s:S:T:" /* Minor options */
 				"i" "f:qnyvVh" /* Common options */,
 				long_options, &option_index)) != -1) {
@@ -196,13 +196,17 @@ int main(int argc, char *argv[])
 			break;
 
 		case 'l':
-			/* It seems that the optional argument may
-			 * be passed as a second instance of this flag. */
-			if (mode != 0 && mode != 'l')
+			if (mode)
 				mode_toomany = 1;
 			mode = opt;
 			if (optarg && strlen(optarg))
 				userspec = optarg;
+			break;
+
+		case 'L':
+			if (mode)
+				mode_toomany = 1;
+			mode = opt;
 			break;
 
 		case 'i':
