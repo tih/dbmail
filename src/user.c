@@ -532,14 +532,14 @@ int main(int argc, char *argv[])
 		result = do_empty(useridnr);
 		break;
 	case 'l':
-		if (userspec) {
-			qprintf("Listing information for user [%s]...\n", userspec);
-			TRACE(TRACE_INFO, "Listing information for user [%s]...", userspec);
-		} else {
-			qprintf("Listing information for all users\n");
-			TRACE(TRACE_INFO, "Listing information for all users");
-		}
+		qprintf("Listing information for user [%s]...\n", userspec);
+		TRACE(TRACE_INFO, "Listing information for user [%s]...", userspec);
 		result = do_show(userspec);
+		break;
+	case 'L':
+		qprintf("Listing information for all users\n");
+		TRACE(TRACE_INFO, "Listing information for all users");
+		result = do_show(NULL);
 		break;
 	case 'x':
 		if (g_list_length(fwds_add) == 0 && g_list_length(fwds_del) == 0) {
