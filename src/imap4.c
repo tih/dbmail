@@ -162,6 +162,8 @@ void imap_cleanup_deferred(gpointer data)
 	ci_close(ci);
 	ci = NULL;
 
+	TRACE(TRACE_NOTICE, "[%p] session closed", session);
+
 	dbmail_imap_session_delete(&session);
 
 	if (rx == STDIN_FILENO)
