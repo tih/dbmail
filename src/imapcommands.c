@@ -154,7 +154,7 @@ static int check_state_and_args(ImapSession * self, int minargs, int maxargs, Cl
 void _ic_capability_enter(dm_thread_data *D)
 {
 	SESSION_GET;
-	TRACE(TRACE_INFO, "[%p] responding to CAPABILITY in state %d", self, self->state)
+	TRACE(TRACE_INFO, "[%p] responding to CAPABILITY in state %d", self, self->state);
 	if (self->state == CLIENTSTATE_NON_AUTHENTICATED)
 		dbmail_imap_session_buff_printf(self, "* %s %s\r\n", self->command, Capa_as_string(self->preauth_capa));
 	else
