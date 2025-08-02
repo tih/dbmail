@@ -648,9 +648,8 @@ int imap_handle_connection(client_sock *c)
 		Capa_remove(session->preauth_capa, "LOGINDISABLED");
 	}
 
-	if (MATCH(db_params.authdriver, "LDAP")) {
+	if (MATCH(db_params.authdriver, "LDAP"))
 		Capa_remove(session->preauth_capa, "AUTH=CRAM-MD5");
-	}
 
 	fd_count = get_opened_fd_count();
 	if (fd_count < 0 || getrlimit(RLIMIT_NPROC, &fd_limit) < 0) {
@@ -664,7 +663,7 @@ int imap_handle_connection(client_sock *c)
 			session, fd_count, fd_limit.rlim_cur, FREE_DF_THRESHOLD);
 		disconnect_user(session);
 	} else {
-		TRACE(TRACE_INFO, "[%p] greeting with CAPABILITY %s", session, Capa_as_string(session->preauth_capa));
+		TRACE(TRACE_INFO, "[%p] state %d capability %s", session, session->state, Capa_as_string(session->preauth_capa));
 		send_greeting(session);
 	}
 
