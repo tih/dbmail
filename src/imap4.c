@@ -664,6 +664,7 @@ int imap_handle_connection(client_sock *c)
 			session, fd_count, fd_limit.rlim_cur, FREE_DF_THRESHOLD);
 		disconnect_user(session);
 	} else {
+		TRACE(TRACE_INFO, "[%p] greeting with CAPABILITY %s", self, Capa_as_string(self->preauth_capa));
 		send_greeting(session);
 	}
 
