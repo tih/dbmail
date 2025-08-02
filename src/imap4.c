@@ -635,7 +635,6 @@ int imap_handle_connection(client_sock *c)
 		login_disabled = FALSE;
 
 	if ((! server_conf->ssl) || (ci->sock->ssl_state == TRUE)) {
-		Capa_remove(session->capa, "STARTTLS");
 		Capa_remove(session->preauth_capa, "STARTTLS");
 		login_disabled = FALSE;
 	}
@@ -650,7 +649,6 @@ int imap_handle_connection(client_sock *c)
 	}
 
 	if (MATCH(db_params.authdriver, "LDAP")) {
-		Capa_remove(session->capa, "AUTH=CRAM-MD5");
 		Capa_remove(session->preauth_capa, "AUTH=CRAM-MD5");
 	}
 
