@@ -2016,11 +2016,6 @@ int imap4_tokenizer_main(ImapSession *self, const char *buffer)
 				dbmail_imap_session_prompt(self,"password");
 				return 0;
 			}
-		} else if (MATCH(p_string_str(self->args[0]),"PLAIN")) {
-			if (self->args_idx == 2) {
-				/* got authentication data */
-				goto finalize;
-			}
 		} else if (MATCH(p_string_str(self->args[0]),"CRAM-MD5")) {
 			if (self->args_idx == 1) {
 				/* decode and store the response */
@@ -2157,17 +2152,17 @@ int imap4_tokenizer_main(ImapSession *self, const char *buffer)
 		
 finalize:
 	if (self->args_idx == 1) {
-		if (Capa_match(self->preauth_capa, "AUTH=LOGIN") && MATCH(p_string_str(self->args[0]),"LOGIN")) {
+		if (Capa_match(self->capa, "AUTH=LOGIN") && MATCH(p_string_str(self->args[0]),"LOGIN")) {
 			TRACE(TRACE_DEBUG, "[%p] prompt for LOGIN authenticate tokens", self);
 			/* ask for username */
 			dbmail_imap_session_prompt(self,"username");
 			return 0;
-		} else if (Capa_match(self->preauth_capa, "AUTH=PLAIN") && MATCH(p_string_str(self->args[0]),"PLAIN")) {
+		} else if (Capa_match(self->capa, "AUTH=PLAIN") && MATCH(p_string_str(self->args[0]),"PLAIN")) {
 			TRACE(TRACE_DEBUG, "[%p] prompt for PLAIN authentication string", self);
 			/* ask for base64 encoded authentication string */
 			dbmail_imap_session_prompt(self,"");
 			return 0;
-		} else if (Capa_match(self->preauth_capa, "AUTH=CRAM-MD5") && MATCH(p_string_str(self->args[0]),"CRAM-MD5")) {
+		} else if (Capa_match(self->capa, "AUTH=CRAM-MD5") && MATCH(p_string_str(self->args[0]),"CRAM-MD5")) {
 			const gchar *s;
 			gchar *t;
 			self->ci->auth = Cram_new();
