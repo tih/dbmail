@@ -139,6 +139,7 @@ ImapSession * dbmail_imap_session_new(Mempool_T pool)
 		if (! Capa_match(self->preauth_capa, "LOGINDISABLED"))
 			Capa_add(self->preauth_capa, "LOGINDISABLED");
 		Capa_remove(self->preauth_capa, "AUTH=LOGIN");
+		Capa_remove(self->preauth_capa, "AUTH=PLAIN");
 		Capa_remove(self->preauth_capa, "AUTH=CRAM-MD5");
 	} else {
 		Capa_remove(self->preauth_capa, "LOGINDISABLED");
@@ -1788,7 +1789,8 @@ int dbmail_imap_session_set_state(ImapSession *self, ClientState_T state)
 			assert(self->ci);
 			TRACE(TRACE_DEBUG,"[%p] set timeout to [%d]", self, server_conf->timeout);
 			self->ci->timeout.tv_sec = server_conf->timeout; 
-			Capa_remove(self->capa, "AUTH=login");
+			Capa_remove(self->capa, "AUTH=LOGIN");
+			Capa_remove(self->capa, "AUTH=PLAIN");
 			Capa_remove(self->capa, "AUTH=CRAM-MD5");
 
 			break;
@@ -2152,13 +2154,11 @@ finalize:
 	if (self->args_idx == 1) {
 		if (Capa_match(self->preauth_capa, "AUTH=LOGIN") && MATCH(p_string_str(self->args[0]),"LOGIN")) {
 			TRACE(TRACE_DEBUG, "[%p] prompt for LOGIN authenticate tokens", self);
-
 			/* ask for username */
 			dbmail_imap_session_prompt(self,"username");
 			return 0;
 		} else if (Capa_match(self->preauth_capa, "AUTH=PLAIN") && MATCH(p_string_str(self->args[0]),"PLAIN")) {
 			TRACE(TRACE_DEBUG, "[%p] prompt for PLAIN authentication string", self);
-
 			/* ask for base64 encoded authentication string */
 			dbmail_imap_session_prompt(self,"");
 			return 0;
