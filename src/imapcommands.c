@@ -263,7 +263,7 @@ int _ic_login(ImapSession *self)
 
 /* _ic_authenticate()
  * 
- * performs authentication using LOGIN mechanism:
+ * performs authentication using LOGIN, PLAIN, or CRAM-MD5:
  */
 void _ic_authenticate_enter(dm_thread_data *D)
 {
@@ -271,15 +271,32 @@ void _ic_authenticate_enter(dm_thread_data *D)
 	SESSION_GET;
 	const char *username = NULL;
 	const char *password = NULL;
+	uint64_t len;
+	char *lnul, *rnul;
+	char *tmp = NULL;
 
-	if (self->args[self->args_idx] && self->args[self->args_idx+1]) {
-		username = p_string_str(self->args[self->args_idx]);
-		password = p_string_str(self->args[self->args_idx+1]);
+	if (self->args[self->args_idx]) {
+		if (self->args[self->args_idx+1]) {
+			username = p_string_str(self->args[self->args_idx]);
+			password = p_string_str(self->args[self->args_idx+1]);
+		} else {
+			tmp = g_base64_decode(p_string_str(self->args[self->args_idx]), &len);
+			if (tmp) {
+				tmp = g_realloc(tmp, len+1);
+				tmp[len] = '\0';
+				lnul = (char *) memchr(tmp, 0, len);
+				rnul = (char *) memrchr(tmp, 0, len);
+				if (lnul && rnul && (lnul != rnul) && (rnul-lnul > 1) && (rnul-tmp < len)) {
+					username = lnul + 1;
+					password = rnul + 1;
+				}
+			}
+		}
 	}
 
 	if ((err = dbmail_imap_session_handle_auth(self,username,password))) {
 		D->status = err;
-		SESSION_RETURN;
+		goto exit;
 	}
 	if (imap_before_smtp) 
 		db_log_ip(self->ci->src_ip);
@@ -291,6 +308,10 @@ void _ic_authenticate_enter(dm_thread_data *D)
 				"%s OK [CAPABILITY %s] User %s authenticated\r\n", 
 				self->tag, Capa_as_string(self->capa), username);
 	}
+
+exit:
+	if (tmp)
+		g_free(tmp);
 	SESSION_RETURN;
 }
 
@@ -299,8 +320,9 @@ int _ic_authenticate(ImapSession *self)
 	if (self->command_type == IMAP_COMM_AUTH) {
 		if (!check_state_and_args(self, 1, 3, CLIENTSTATE_NON_AUTHENTICATED)) return 1;
 		/* check authentication method */
-		if ( (! MATCH(p_string_str(self->args[self->args_idx]), "login")) && \
-			(! MATCH(p_string_str(self->args[self->args_idx]), "cram-md5")) ) {
+		if ( (! MATCH(p_string_str(self->args[self->args_idx]), "login")) &&
+		     (! MATCH(p_string_str(self->args[self->args_idx]), "plain")) &&
+		     (! MATCH(p_string_str(self->args[self->args_idx]), "cram-md5")) ) {
 			dbmail_imap_session_buff_printf(self, "%s NO Invalid authentication mechanism specified\r\n", self->tag);
 			return 1;
 		}
