@@ -149,10 +149,6 @@ ImapSession * dbmail_imap_session_new(Mempool_T pool)
 		Capa_remove(self->preauth_capa, "LOGINDISABLED");
 	}
 
-	if (MATCH(db_params.authdriver, "LDAP")) {
-		Capa_remove(self->preauth_capa, "AUTH=CRAM-MD5");
-	}
-
 	self->physids = g_tree_new((GCompareFunc)ucmp);
 	self->mbxinfo = g_tree_new_full((GCompareDataFunc)ucmpdata,NULL,(GDestroyNotify)uint64_free,(GDestroyNotify)mailboxstate_destroy);
 
