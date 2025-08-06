@@ -141,7 +141,11 @@ ImapSession * dbmail_imap_session_new(Mempool_T pool)
 		login_disabled = FALSE;
 	}
 
-	if (! login_disabled) {
+	if (login_disabled) {
+		Capa_remove(self->preauth_capa, "AUTH=LOGIN");
+		Capa_remove(self->preauth_capa, "AUTH=PLAIN");
+		Capa_remove(self->preauth_capa, "AUTH=CRAM-MD5");
+	} else {
 		Capa_remove(self->preauth_capa, "LOGINDISABLED");
 	}
 

@@ -184,6 +184,12 @@ int _ic_starttls(ImapSession *self)
 	
 	Capa_remove(self->preauth_capa, "STARTTLS");
 	Capa_remove(self->preauth_capa, "LOGINDISABLED");
+	if (! Capa_match(self->preauth_capa, "AUTH=LOGIN")
+	    Capa_add(self->preauth_capa, "AUTH=LOGIN");
+	if (! Capa_match(self->preauth_capa, "AUTH=PLAIN")
+	    Capa_add(self->preauth_capa, "AUTH=PLAIN");
+	if (! Capa_match(self->preauth_capa, "AUTH=CRAM-MD5")
+	    Capa_add(self->preauth_capa, "AUTH=CRAM-MD5");
 	
 	if (i < 0) i = 0;
 
