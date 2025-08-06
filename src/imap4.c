@@ -625,8 +625,8 @@ int imap_handle_connection(client_sock *c)
 
 	session->ci = ci;
 	if ((! server_conf->ssl) || (ci->sock->ssl_state == TRUE)) {
-		Capa_remove(session->capa, "STARTTLS");
-		Capa_remove(session->capa, "LOGINDISABLED");
+		Capa_remove(session->preauth_capa, "STARTTLS");
+		Capa_remove(session->preauth_capa, "LOGINDISABLED");
 	}
 
 	fd_count = get_opened_fd_count();

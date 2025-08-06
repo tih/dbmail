@@ -114,6 +114,7 @@ ImapSession * dbmail_imap_session_new(Mempool_T pool)
 	self->fi = mempool_pop(self->pool, sizeof(fetch_items));
 	self->capa = Capa_new(self->pool);
 	self->preauth_capa = Capa_new(self->pool);
+
 	Capa_remove(self->preauth_capa, "ACL");
 	Capa_remove(self->preauth_capa, "RIGHTS=texk");
 	Capa_remove(self->preauth_capa, "NAMESPACE");
@@ -129,29 +130,23 @@ ImapSession * dbmail_imap_session_new(Mempool_T pool)
 	Capa_remove(self->preauth_capa, "ENABLE");
 	Capa_remove(self->preauth_capa, "QRESYNC");
 
-	if (! (server_conf && server_conf->ssl))
-		Capa_remove(self->preauth_capa, "STARTTLS");
-
-	if (! Capa_match(self->preauth_capa, "STARTTLS"))
-		login_disabled = FALSE;
-
-	if (login_disabled) {
-		if (! Capa_match(self->preauth_capa, "LOGINDISABLED"))
-			Capa_add(self->preauth_capa, "LOGINDISABLED");
-		Capa_remove(self->preauth_capa, "AUTH=LOGIN");
-		Capa_remove(self->preauth_capa, "AUTH=PLAIN");
-		Capa_remove(self->preauth_capa, "AUTH=CRAM-MD5");
-	} else {
-		Capa_remove(self->preauth_capa, "LOGINDISABLED");
-	}
-	if (MATCH(db_params.authdriver, "LDAP")) {
-		Capa_remove(self->capa, "AUTH=CRAM-MD5");
-		Capa_remove(self->preauth_capa, "AUTH=CRAM-MD5");
-	}
+	Capa_remove(self->capa, "STARTTLS");
+	Capa_remove(self->capa, "LOGINDISABLED");
+	Capa_remove(self->capa, "AUTH=LOGIN");
+	Capa_remove(self->capa, "AUTH=PLAIN");
+	Capa_remove(self->capa, "AUTH=CRAM-MD5");
 
 	if (! (server_conf && server_conf->ssl)) {
-		Capa_remove(self->capa, "STARTTLS");
 		Capa_remove(self->preauth_capa, "STARTTLS");
+		login_disabled = FALSE;
+	}
+
+	if (! login_disabled) {
+		Capa_remove(self->preauth_capa, "LOGINDISABLED");
+	}
+
+	if (MATCH(db_params.authdriver, "LDAP")) {
+		Capa_remove(self->preauth_capa, "AUTH=CRAM-MD5");
 	}
 
 	self->physids = g_tree_new((GCompareFunc)ucmp);
@@ -1396,8 +1391,8 @@ int dbmail_imap_session_handle_auth(ImapSession * self, const char * username, c
 				char *enctype = NULL;
 				if (userid) enctype = auth_getencryption(userid);
 				if ((! enctype) || (! MATCH(enctype,""))) {
-					Capa_remove(self->capa,"AUTH=CRAM-MD5");
-					dbmail_imap_session_buff_printf(self, "* CAPABILITY %s\r\n", Capa_as_string(self->capa));
+					Capa_remove(self->preauth_capa,"AUTH=CRAM-MD5");
+					dbmail_imap_session_buff_printf(self, "* CAPABILITY %s\r\n", Capa_as_string(self->preauth_capa));
 				}
 				if (enctype) g_free(enctype);
 			}
@@ -1789,10 +1784,6 @@ int dbmail_imap_session_set_state(ImapSession *self, ClientState_T state)
 			assert(self->ci);
 			TRACE(TRACE_DEBUG,"[%p] set timeout to [%d]", self, server_conf->timeout);
 			self->ci->timeout.tv_sec = server_conf->timeout; 
-			Capa_remove(self->capa, "AUTH=LOGIN");
-			Capa_remove(self->capa, "AUTH=PLAIN");
-			Capa_remove(self->capa, "AUTH=CRAM-MD5");
-
 			break;
 
 		default:
