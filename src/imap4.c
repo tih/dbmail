@@ -627,12 +627,12 @@ int imap_handle_connection(client_sock *c)
 	if ((! server_conf->ssl) || (ci->sock->ssl_state == TRUE)) {
 		Capa_remove(session->preauth_capa, "STARTTLS");
 		Capa_remove(session->preauth_capa, "LOGINDISABLED");
-		if (! Capa_match(self->preauth_capa, "AUTH=LOGIN"))
-			Capa_add(self->preauth_capa, "AUTH=LOGIN");
-		if (! Capa_match(self->preauth_capa, "AUTH=PLAIN"))
-			Capa_add(self->preauth_capa, "AUTH=PLAIN");
-		if (! Capa_match(self->preauth_capa, "AUTH=CRAM-MD5"))
-			Capa_add(self->preauth_capa, "AUTH=CRAM-MD5");
+		if (! Capa_match(session->preauth_capa, "AUTH=LOGIN"))
+			Capa_add(session->preauth_capa, "AUTH=LOGIN");
+		if (! Capa_match(session->preauth_capa, "AUTH=PLAIN"))
+			Capa_add(session->preauth_capa, "AUTH=PLAIN");
+		if (! Capa_match(session->preauth_capa, "AUTH=CRAM-MD5"))
+			Capa_add(session->preauth_capa, "AUTH=CRAM-MD5");
 	}
 
 	fd_count = get_opened_fd_count();
