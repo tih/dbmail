@@ -181,19 +181,13 @@ int _ic_starttls(ImapSession *self)
 	}
 	ci_write(self->ci, "%s OK Begin TLS now\r\n", self->tag);
 	i = ci_starttls(self->ci);
-	
-	Capa_remove(self->preauth_capa, "STARTTLS");
-	Capa_remove(self->preauth_capa, "LOGINDISABLED");
-	if (! Capa_match(self->preauth_capa, "AUTH=LOGIN"))
-		Capa_add(self->preauth_capa, "AUTH=LOGIN");
-	if (! Capa_match(self->preauth_capa, "AUTH=PLAIN"))
-		Capa_add(self->preauth_capa, "AUTH=PLAIN");
-	if (! Capa_match(self->preauth_capa, "AUTH=CRAM-MD5"))
-		Capa_add(self->preauth_capa, "AUTH=CRAM-MD5");
-	
+
 	if (i < 0) i = 0;
 
-	if (i == 0) return 3; /* done */
+	if (i == 0) {
+		dbmail_imap_session_encrypted(ImapSession *self);
+		return 3; /* done */
+	}
 
 	return i;
 }

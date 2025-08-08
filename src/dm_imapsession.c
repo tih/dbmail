@@ -141,6 +141,10 @@ ImapSession * dbmail_imap_session_new(Mempool_T pool)
 		login_disabled = FALSE;
 	}
 
+	if (MATCH(db_params.authdriver, "LDAP")) {
+		Capa_remove(self->preauth_capa, "AUTH=CRAM-MD5");
+	}
+
 	if (login_disabled) {
 		Capa_remove(self->preauth_capa, "AUTH=LOGIN");
 		Capa_remove(self->preauth_capa, "AUTH=PLAIN");
@@ -154,6 +158,22 @@ ImapSession * dbmail_imap_session_new(Mempool_T pool)
 
 	TRACE(TRACE_DEBUG,"imap session [%p] created", self);
 	return self;
+}
+
+void dbmail_imap_session_encrypted(ImapSession *self)
+{
+	Capa_remove(self->preauth_capa, "STARTTLS");
+	Capa_remove(self->preauth_capa, "LOGINDISABLED");
+
+	if (! Capa_match(self->preauth_capa, "AUTH=LOGIN"))
+		Capa_add(self->preauth_capa, "AUTH=LOGIN");
+	if (! Capa_match(self->preauth_capa, "AUTH=PLAIN"))
+		Capa_add(self->preauth_capa, "AUTH=PLAIN");
+
+	if (! MATCH(db_params.authdriver, "LDAP")) {
+		if (! Capa_match(self->preauth_capa, "AUTH=CRAM-MD5"))
+			Capa_add(self->preauth_capa, "AUTH=CRAM-MD5");
+	}
 }
 
 static uint64_t dbmail_imap_session_message_load(ImapSession *self)
