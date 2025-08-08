@@ -185,7 +185,7 @@ int _ic_starttls(ImapSession *self)
 	if (i < 0) i = 0;
 
 	if (i == 0) {
-		dbmail_imap_session_encrypted(ImapSession *self);
+		dbmail_imap_session_encrypted(self);
 		return 3; /* done */
 	}
 
