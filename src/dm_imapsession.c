@@ -2055,7 +2055,7 @@ int imap4_tokenizer_main(ImapSession *self, const char *buffer)
 			rnul = (char *) memrchr(tmp, 0, len);
 
 			if (lnul && rnul && (lnul != rnul) && (rnul-lnul > 1) && (rnul-tmp < (long int) len)) {
-				if ((lnul == tmp) || (strcmp(tmp, lnul) == 0)) {
+				if ((lnul == tmp) || (strcmp(tmp, lnul+1) == 0)) {
 					self->args[self->args_idx++] = p_string_new(self->pool, lnul+1);
 					self->args[self->args_idx++] = p_string_new(self->pool, rnul+1);
 					g_free(tmp);
