@@ -114,6 +114,7 @@ ImapSession * dbmail_imap_session_new(Mempool_T pool)
 	self->fi = mempool_pop(self->pool, sizeof(fetch_items));
 	self->capa = Capa_new(self->pool);
 	self->preauth_capa = Capa_new(self->pool);
+
 	Capa_remove(self->preauth_capa, "ACL");
 	Capa_remove(self->preauth_capa, "RIGHTS=texk");
 	Capa_remove(self->preauth_capa, "NAMESPACE");
@@ -129,28 +130,27 @@ ImapSession * dbmail_imap_session_new(Mempool_T pool)
 	Capa_remove(self->preauth_capa, "ENABLE");
 	Capa_remove(self->preauth_capa, "QRESYNC");
 
-	if (! (server_conf && server_conf->ssl))
-		Capa_remove(self->preauth_capa, "STARTTLS");
+	Capa_remove(self->capa, "STARTTLS");
+	Capa_remove(self->capa, "LOGINDISABLED");
+	Capa_remove(self->capa, "AUTH=LOGIN");
+	Capa_remove(self->capa, "AUTH=PLAIN");
+	Capa_remove(self->capa, "AUTH=CRAM-MD5");
 
-	if (! Capa_match(self->preauth_capa, "STARTTLS"))
+	if (! (server_conf && server_conf->ssl)) {
+		Capa_remove(self->preauth_capa, "STARTTLS");
 		login_disabled = FALSE;
+	}
+
+	if (MATCH(db_params.authdriver, "LDAP")) {
+		Capa_remove(self->preauth_capa, "AUTH=CRAM-MD5");
+	}
 
 	if (login_disabled) {
-		if (! Capa_match(self->preauth_capa, "LOGINDISABLED"))
-			Capa_add(self->preauth_capa, "LOGINDISABLED");
 		Capa_remove(self->preauth_capa, "AUTH=LOGIN");
+		Capa_remove(self->preauth_capa, "AUTH=PLAIN");
 		Capa_remove(self->preauth_capa, "AUTH=CRAM-MD5");
 	} else {
 		Capa_remove(self->preauth_capa, "LOGINDISABLED");
-	}
-	if (MATCH(db_params.authdriver, "LDAP")) {
-		Capa_remove(self->capa, "AUTH=CRAM-MD5");
-		Capa_remove(self->preauth_capa, "AUTH=CRAM-MD5");
-	}
-
-	if (! (server_conf && server_conf->ssl)) {
-		Capa_remove(self->capa, "STARTTLS");
-		Capa_remove(self->preauth_capa, "STARTTLS");
 	}
 
 	self->physids = g_tree_new((GCompareFunc)ucmp);
@@ -158,6 +158,22 @@ ImapSession * dbmail_imap_session_new(Mempool_T pool)
 
 	TRACE(TRACE_DEBUG,"imap session [%p] created", self);
 	return self;
+}
+
+void dbmail_imap_session_encrypted(ImapSession *self)
+{
+	Capa_remove(self->preauth_capa, "STARTTLS");
+	Capa_remove(self->preauth_capa, "LOGINDISABLED");
+
+	if (! Capa_match(self->preauth_capa, "AUTH=LOGIN"))
+		Capa_add(self->preauth_capa, "AUTH=LOGIN");
+	if (! Capa_match(self->preauth_capa, "AUTH=PLAIN"))
+		Capa_add(self->preauth_capa, "AUTH=PLAIN");
+
+	if (! MATCH(db_params.authdriver, "LDAP")) {
+		if (! Capa_match(self->preauth_capa, "AUTH=CRAM-MD5"))
+			Capa_add(self->preauth_capa, "AUTH=CRAM-MD5");
+	}
 }
 
 static uint64_t dbmail_imap_session_message_load(ImapSession *self)
@@ -523,16 +539,32 @@ static int _imap_session_fetch_parse_octet_range(ImapSession *self)
 	return 0;	/* DONE */
 }
 
-
-#define TOKENAT(a) (self->args[self->args_idx+a]?p_string_str(self->args[self->args_idx+a]):NULL)
-#define NEXTTOKEN TOKENAT(1)
-#define TOKEN TOKENAT(0)
+/**
+ * Tokens are stored in a c array accessed via a pointer
+ * that doesn't know about the array.
+ * Testing for the existence of an element causes an Invalid read
+ * TODO convert ImapSession->args into a gtk GArray
+ */
+const char * token_first(ImapSession * self) {
+	if (self->args[self->args_idx]) {
+		return p_string_str(self->args[self->args_idx]);
+	} else {
+		return NULL;
+	}
+}
+const char * token_next(ImapSession * self) {
+	if (self->args[self->args_idx+1]) {
+		return p_string_str(self->args[self->args_idx+1]);
+	} else {
+		return NULL;
+	}
+}
 
 int dbmail_imap_session_fetch_parse_args(ImapSession * self)
 {
 	int ispeek = 0;
-	const char *token = TOKEN;
-	const char *nexttoken = NEXTTOKEN;
+	const char *token = token_first(self);
+	const char *nexttoken = token_next(self);
 
 	if (!token) return -1; // done
 	if ((token[0] == ')') && (! nexttoken)) return -1; // done
@@ -575,8 +607,8 @@ int dbmail_imap_session_fetch_parse_args(ImapSession * self)
 
 		if (MATCH(token,"body.peek")) ispeek=1;
 		
-		nexttoken = NEXTTOKEN;
-		
+		nexttoken = token_next(self);
+
 		if (! nexttoken || ! MATCH(nexttoken,"[")) {
 			if (ispeek) return -2;	/* error DONE */
 			self->fi->msgparse_needed = 1;
@@ -587,8 +619,8 @@ int dbmail_imap_session_fetch_parse_args(ImapSession * self)
 			self->args_idx++;	/* now pointing at '[' (not the last arg, parentheses are matched) */
 			self->args_idx++;	/* now pointing at what should be the item type */
 
-			token = TOKEN;
-			nexttoken = NEXTTOKEN;
+			token = token_first(self);
+			nexttoken = token_next(self);
 
 			TRACE(TRACE_DEBUG,"[%p] token [%s], nexttoken [%s]", self, token, nexttoken);
 
@@ -1395,8 +1427,8 @@ int dbmail_imap_session_handle_auth(ImapSession * self, const char * username, c
 				char *enctype = NULL;
 				if (userid) enctype = auth_getencryption(userid);
 				if ((! enctype) || (! MATCH(enctype,""))) {
-					Capa_remove(self->capa,"AUTH=CRAM-MD5");
-					dbmail_imap_session_buff_printf(self, "* CAPABILITY %s\r\n", Capa_as_string(self->capa));
+					Capa_remove(self->preauth_capa,"AUTH=CRAM-MD5");
+					dbmail_imap_session_buff_printf(self, "* CAPABILITY %s\r\n", Capa_as_string(self->preauth_capa));
 				}
 				if (enctype) g_free(enctype);
 			}
@@ -1788,9 +1820,6 @@ int dbmail_imap_session_set_state(ImapSession *self, ClientState_T state)
 			assert(self->ci);
 			TRACE(TRACE_DEBUG,"[%p] set timeout to [%d]", self, server_conf->timeout);
 			self->ci->timeout.tv_sec = server_conf->timeout; 
-			Capa_remove(self->capa, "AUTH=login");
-			Capa_remove(self->capa, "AUTH=CRAM-MD5");
-
 			break;
 
 		default:
@@ -2014,6 +2043,32 @@ int imap4_tokenizer_main(ImapSession *self, const char *buffer)
 				dbmail_imap_session_prompt(self,"password");
 				return 0;
 			}
+
+		} else if (MATCH(p_string_str(self->args[0]),"PLAIN")) {
+			uint64_t len;
+			char *lnul, *rnul, *tmp;
+
+			tmp = (char *) g_base64_decode(s, &len);
+			if (! tmp) {
+				return -1;
+			}
+			tmp = (char *) g_realloc(tmp, len+1);
+			tmp[len] = '\0';
+
+			lnul = (char *) memchr(tmp, 0, len);
+			rnul = (char *) memrchr(tmp, 0, len);
+
+			if (lnul && rnul && (lnul != rnul) && (rnul-lnul > 1) && (rnul-tmp < (long int) len)) {
+				if ((lnul == tmp) || (strcmp(tmp, lnul+1) == 0)) {
+					self->args[self->args_idx++] = p_string_new(self->pool, lnul+1);
+					self->args[self->args_idx++] = p_string_new(self->pool, rnul+1);
+					g_free(tmp);
+					goto finalize;
+				}
+			}
+			g_free(tmp);
+			return -1;
+
 		} else if (MATCH(p_string_str(self->args[0]),"CRAM-MD5")) {
 			if (self->args_idx == 1) {
 				/* decode and store the response */
@@ -2151,10 +2206,14 @@ int imap4_tokenizer_main(ImapSession *self, const char *buffer)
 finalize:
 	if (self->args_idx == 1) {
 		if (Capa_match(self->preauth_capa, "AUTH=LOGIN") && MATCH(p_string_str(self->args[0]),"LOGIN")) {
-			TRACE(TRACE_DEBUG, "[%p] prompt for authenticate tokens", self);
-
+			TRACE(TRACE_DEBUG, "[%p] prompt for LOGIN authenticate tokens", self);
 			/* ask for username */
 			dbmail_imap_session_prompt(self,"username");
+			return 0;
+		} else if (Capa_match(self->preauth_capa, "AUTH=PLAIN") && MATCH(p_string_str(self->args[0]),"PLAIN")) {
+			TRACE(TRACE_DEBUG, "[%p] prompt for PLAIN authentication string", self);
+			/* ask for base64 encoded authentication string */
+			dbmail_imap_session_prompt(self,"");
 			return 0;
 		} else if (Capa_match(self->preauth_capa, "AUTH=CRAM-MD5") && MATCH(p_string_str(self->args[0]),"CRAM-MD5")) {
 			const gchar *s;
