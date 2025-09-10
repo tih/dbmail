@@ -26,6 +26,7 @@
 #include <openssl/err.h>
 #include "dbmail.h"
 #include "dm_mempool.h"
+#include <locale.h>
 
 #define THIS_MODULE "clientbase"
 
@@ -419,6 +420,7 @@ void ci_read_cb(ClientBase_T *client)
 
 	while (TRUE) {
 		memset(ibuf, 0, sizeof(ibuf));
+		char *locale = setlocale(LC_ALL, "C.UTF-8");
 		if (client->sock->ssl) {
 			t = (int64_t)SSL_read(client->sock->ssl, ibuf, sizeof(ibuf)-1);
 		} else {
