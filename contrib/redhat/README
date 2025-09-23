@@ -1,0 +1,41 @@
+The included setup works for building RPM packages on Redhat RHEL 9.
+
+Initial tasks:
+
+Enable use repositories for Codeready Builder and EPEL.
+
+Then install prerequisites:
+
+$ sudo dnf install -y git rpmdevtools gcc gcc-c++ bison flex make coreutils
+$ sudo dnf install -y libtool autoconf automake asciidoc xmlto autoconf-archive
+$ sudo dnf install -y openssl-devel zlib-devel openldap-devel libcurl-devel
+$ sudo dnf install -y gmime30-devel mhash-devel libevent-devel jemalloc-devel
+$ sudo dnf install -y libsqlite3x-devel mariadb-devel postgresql-devel
+$ sudo yum install -y clang15
+$ sudo update-alternatives --install /usr/bin/cc cc /usr/bin/clang-15 50
+
+Next, set up the build environment:
+
+$ rpmdev-setuptree
+
+Copy the spec files from this directory to ~/rpmbuild/SPECS/
+
+Then fetch the source kits:
+
+$ spectool -g ~/rpmbuild/SPECS/libsieve.spec -C ~/rpmbuild/SOURCES/
+$ spectool -g ~/rpmbuild/SPECS/libzdb.spec -C ~/rpmbuild/SOURCES/
+$ spectool -g ~/rpmbuild/SPECS/dbmail.spec -C ~/rpmbuild/SOURCES/
+
+Finally, it's build time:
+
+$ rpmbuild -ba rpmbuild/SPECS/libsieve.spec
+$ sudo rpm -i rpmbuild/RPMS/x86_64/libsieve-2.2-2.el9.x86_64.rpm
+$ sudo rpm -i rpmbuild/RPMS/x86_64/libsieve-devel-2.2-2.el9.x86_64.rpm
+$ rpmbuild -ba rpmbuild/SPECS/libzdb.spec
+$ sudo rpm -i rpmbuild/RPMS/x86_64/libzdb-3.2.3-2.el9.x86_64.rpm
+$ sudo rpm -i rpmbuild/RPMS/x86_64/libzdb-devel-3.2.3-2.el9.x86_64.rpm
+$ rpmbuild -ba rpmbuild/SPECS/dbmail.spec
+$ sudo rpm -i rpmbuild/RPMS/x86_64/dbmail-3.5.4-2.el9.x86_64.rpm
+$ sudo rpm -i rpmbuild/RPMS/x86_64/dbmail-auth-ldap-3.5.4-2.el9.x86_64.rpm
+
+You now have DBmail installed and ready to go.

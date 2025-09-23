@@ -1,0 +1,8 @@
+/var/log/dbmail.log {
+    missingok
+    notifempty
+    create 0660 root dbmail
+    postrotate
+       for pid in $(ls /var/run/dbmail/dbmail-*\.pid); do kill -HUP $(cat $pid) 2> /dev/null; done
+    endscript
+}
