@@ -1,4 +1,4 @@
-#!/usr/bin/perl -i
+#!/usr/pkg/bin/perl -i
 
 my $file = $ARGV[0];
 my $text = do { local( @ARGV, $/ ) = $file ; <> } ;
