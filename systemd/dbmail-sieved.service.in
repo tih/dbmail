@@ -7,6 +7,9 @@ Type=notify
 ExecStart=@sbindir@/dbmail-sieved -D
 Restart=always
 RestartSec=3s
+StartLimitBurst=3
+StartLimitIntervalSec=15
+SyslogFacility=mail
 
 [Install]
 WantedBy=multi-user.target
