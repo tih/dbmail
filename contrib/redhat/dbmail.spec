@@ -66,7 +66,7 @@ SQLite
 Please see /usr/share/doc/dbmail-*/README for specific information.
 
 %prep
-%setup -q -n %{name}
+%setup -q
 
 # make a couple of changes to the default dbmail.conf file:
 # 1. default storage to local, permanent, sqlite database
