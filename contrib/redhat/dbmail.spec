@@ -8,8 +8,7 @@
 %define		SOURCE5	%{SRCBASE}/contrib/redhat/dbmail.cron
 %define		SOURCE6	%{SRCBASE}/contrib/redhat/dbmail.logrotate
 %define		SOURCE7	%{SRCBASE}/contrib/redhat/dbmail.sysconfig
-%define		SOURCE8	%{SRCBASE}/contrib/redhat/dbmail.tmpfiles
-%define		SOURCE9	%{SRCBASE}/dbmail.conf
+%define		SOURCE8	%{SRCBASE}/dbmail.conf
 
 Name:           dbmail
 Version:        3.5.4
@@ -95,7 +94,6 @@ mkdir -p $RPM_BUILD_ROOT/%{_unitdir}
 mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/cron.daily
 mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d
 mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig
-mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/tmpfiles.d
 mkdir -p $RPM_BUILD_ROOT/%{_localstatedir}/lib/dbmail
 make install DESTDIR=$RPM_BUILD_ROOT
 install -p -m 644 %SOURCE1 $RPM_BUILD_ROOT/%{_unitdir}
@@ -105,15 +103,13 @@ install -p -m 644 %SOURCE4 $RPM_BUILD_ROOT/%{_unitdir}
 install -p -m 755 %SOURCE5 $RPM_BUILD_ROOT/%{_sysconfdir}/cron.daily/dbmail
 install -p -m 644 %SOURCE6 $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/dbmail
 install -p -m 644 %SOURCE7 $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig/dbmail
-install -p -m 644 %SOURCE8 $RPM_BUILD_ROOT/%{_sysconfdir}/tmpfiles.d/dbmail
-install -p -m 600 %SOURCE9 $RPM_BUILD_ROOT/%{_sysconfdir}/
+install -p -m 600 %SOURCE8 $RPM_BUILD_ROOT/%{_sysconfdir}/
 install -p -m 644 man/*1 $RPM_BUILD_ROOT/%{_mandir}/man1/
 install -p -m 644 man/*5 $RPM_BUILD_ROOT/%{_mandir}/man5/
 install -p -m 644 man/*8 $RPM_BUILD_ROOT/%{_mandir}/man8/
 # remove libtool archives and -devel type stuff (but leave loadable modules)
 find $RPM_BUILD_ROOT -name \*\.la -print | xargs rm -f
 rm -f $RPM_BUILD_ROOT/%{_libdir}/dbmail/libdbmail.so
-rm -rf %{TMPLIB}
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -182,10 +178,10 @@ done
 %{_libdir}/dbmail/libsort_sieve*
 %config(noreplace) %{_sysconfdir}/dbmail.conf
 %{_unitdir}/dbmail-*.service
+%{_usr}/lib/tmpfiles.d/dbmail.conf
 %{_sysconfdir}/cron.daily/dbmail
 %config(noreplace) %{_sysconfdir}/sysconfig/dbmail
 %config(noreplace) %{_sysconfdir}/logrotate.d/dbmail
-%{_sysconfdir}/tmpfiles.d/dbmail
 %dir %attr(0775,root,dbmail) %{_localstatedir}/lib/dbmail
 
 %package auth-ldap
