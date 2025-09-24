@@ -1,6 +1,6 @@
 %define         services dbmail-imapd dbmail-pop3d dbmail-lmtpd dbmail-sieved
 
-%define		SRCBASE	%{_builddir}/%{name}
+%define		SRCBASE	%{_builddir}/%{name}-%{version}
 %define		SOURCE1	%{SRCBASE}/systemd/dbmail-imapd.service
 %define		SOURCE2 %{SRCBASE}/systemd/dbmail-pop3d.service
 %define		SOURCE3	%{SRCBASE}/systemd/dbmail-lmtpd.service
