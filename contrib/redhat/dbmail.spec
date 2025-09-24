@@ -79,8 +79,7 @@ sed -i -e 's,\(^dburi\W*=\)\(.*$\),\1 sqlite://%{_localstatedir}/lib/dbmail/dbma
 
 %build
 export CFLAGS="%{optflags} -I/usr/include/zdb"
-%configure --disable-rpath \
-	   --disable-static \
+%configure --disable-static \
 	   --with-ldap \
            --with-sieve \
            --enable-manpages \
