@@ -102,7 +102,7 @@ install -p -m 644 %SOURCE4 $RPM_BUILD_ROOT/%{_unitdir}
 install -p -m 755 %SOURCE5 $RPM_BUILD_ROOT/%{_sysconfdir}/cron.daily/dbmail
 install -p -m 644 %SOURCE6 $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/dbmail
 install -p -m 644 %SOURCE7 $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig/dbmail
-install -p -m 640 -g %{name} %SOURCE8 $RPM_BUILD_ROOT/%{_sysconfdir}/
+install -p -m 640 %SOURCE8 $RPM_BUILD_ROOT/%{_sysconfdir}/
 install -p -m 644 man/*1 $RPM_BUILD_ROOT/%{_mandir}/man1/
 install -p -m 644 man/*5 $RPM_BUILD_ROOT/%{_mandir}/man5/
 install -p -m 644 man/*8 $RPM_BUILD_ROOT/%{_mandir}/man8/
@@ -124,6 +124,7 @@ exit 0
 if [ $1 -eq 1 ] ; then
     # Initial installation
     /bin/systemctl daemon-reload >/dev/null 2>&1 || :
+    /bin/chgrp %{name} %{_sysconfdir}/dbmail.conf > /dev/null 2>&1 || :
 fi
 /sbin/ldconfig
 
