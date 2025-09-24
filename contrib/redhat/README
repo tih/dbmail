@@ -6,7 +6,7 @@ Enable use repositories for Codeready Builder and EPEL.
 
 Then install prerequisites:
 
-$ sudo dnf install -y git rpmdevtools gcc gcc-c++ bison flex make coreutils
+$ sudo dnf install -y git rpmdevtools gcc gcc-c++ bison flex make coreutils systemd-devel
 $ sudo dnf install -y libtool autoconf automake asciidoc xmlto autoconf-archive
 $ sudo dnf install -y openssl-devel zlib-devel openldap-devel libcurl-devel
 $ sudo dnf install -y gmime30-devel mhash-devel libevent-devel jemalloc-devel
