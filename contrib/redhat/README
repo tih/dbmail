@@ -2,13 +2,13 @@ The included setup works for building RPM packages on Redhat RHEL 9.
 
 Initial tasks:
 
-Enable use repositories for Codeready Builder and EPEL.
+Enable use of repositories for Codeready Builder and EPEL.
 
 Then install prerequisites:
 
 $ sudo dnf install -y git rpmdevtools gcc gcc-c++ bison flex make coreutils systemd-devel
 $ sudo dnf install -y libtool autoconf automake asciidoc xmlto autoconf-archive
-$ sudo dnf install -y openssl-devel zlib-devel openldap-devel libcurl-devel
+$ sudo dnf install -y openssl-devel zlib-devel openldap-devel libcurl-devel check-devel
 $ sudo dnf install -y gmime30-devel mhash-devel libevent-devel jemalloc-devel
 $ sudo dnf install -y libsqlite3x-devel mariadb-devel postgresql-devel
 $ sudo yum install -y clang15
@@ -38,4 +38,8 @@ $ rpmbuild -ba rpmbuild/SPECS/dbmail.spec
 $ sudo rpm -i rpmbuild/RPMS/x86_64/dbmail-3.5.4-2.el9.x86_64.rpm
 $ sudo rpm -i rpmbuild/RPMS/x86_64/dbmail-auth-ldap-3.5.4-2.el9.x86_64.rpm
 
-You now have DBmail installed and ready to go.
+You now have DBmail installed and ready to go.  To run the included
+test suite, you can do this:
+
+$ cd rpmbuild/BUILD/dbmail-3.5.4
+$ sudo make check

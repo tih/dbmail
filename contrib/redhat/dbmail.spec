@@ -80,10 +80,11 @@ sed -i -e 's,\(^dburi\W*=\)\(.*$\),\1 sqlite://%{_localstatedir}/lib/dbmail/dbma
 %build
 export CFLAGS="%{optflags} -I/usr/include/zdb"
 %configure --disable-static \
+	   --with-check \
 	   --with-ldap \
-           --with-sieve \
-           --enable-manpages \
-           --enable-systemd
+	   --with-sieve \
+	   --enable-manpages \
+	   --enable-systemd
 make %{?_smp_mflags}
 
 %install
