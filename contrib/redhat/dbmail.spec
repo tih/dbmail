@@ -1,14 +1,14 @@
 %define         services dbmail-imapd dbmail-pop3d dbmail-lmtpd dbmail-sieved
 
-%define		SRCBASE	%{_builddir}/%{name}-%{version}
-%define		SOURCE1	%{SRCBASE}/systemd/dbmail-imapd.service
-%define		SOURCE2 %{SRCBASE}/systemd/dbmail-pop3d.service
-%define		SOURCE3	%{SRCBASE}/systemd/dbmail-lmtpd.service
-%define		SOURCE4	%{SRCBASE}/systemd/dbmail-sieved.service
-%define		SOURCE5	%{SRCBASE}/contrib/redhat/dbmail.cron
-%define		SOURCE6	%{SRCBASE}/contrib/redhat/dbmail.logrotate
-%define		SOURCE7	%{SRCBASE}/contrib/redhat/dbmail.sysconfig
-%define		SOURCE8	%{SRCBASE}/dbmail.conf
+%define         SRCBASE %{_builddir}/%{name}-%{version}
+%define         SOURCE1 %{SRCBASE}/systemd/dbmail-imapd.service
+%define         SOURCE2 %{SRCBASE}/systemd/dbmail-pop3d.service
+%define         SOURCE3 %{SRCBASE}/systemd/dbmail-lmtpd.service
+%define         SOURCE4 %{SRCBASE}/systemd/dbmail-sieved.service
+%define         SOURCE5 %{SRCBASE}/contrib/redhat/dbmail.cron
+%define         SOURCE6 %{SRCBASE}/contrib/redhat/dbmail.logrotate
+%define         SOURCE7 %{SRCBASE}/contrib/redhat/dbmail.sysconfig
+%define         SOURCE8 %{SRCBASE}/dbmail.conf
 
 Name:           dbmail
 Version:        3.5.4
@@ -80,11 +80,11 @@ sed -i -e 's,\(^dburi\W*=\)\(.*$\),\1 sqlite://%{_localstatedir}/lib/dbmail/dbma
 %build
 export CFLAGS="%{optflags} -I/usr/include/zdb"
 %configure --disable-static \
-	   --with-check \
-	   --with-ldap \
-	   --with-sieve \
-	   --enable-manpages \
-	   --enable-systemd
+           --with-check \
+           --with-ldap \
+           --with-sieve \
+           --enable-manpages \
+           --enable-systemd
 make %{?_smp_mflags}
 
 %install
